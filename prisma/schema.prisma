@@ -1,0 +1,493 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id    String @id @unique @default(uuid())
+  name  String
+  email String @unique
+  cel   String
+
+  doccument String?
+  password  String
+
+  value        Float   @default(0)
+  credit       Float   @default(0)
+  credit_limit Float   @default(300)
+  code         String? @unique
+
+  associated_to String?
+
+  address          String?
+  residence_number String?
+  neighborhood     String?
+  cep              String?
+  uf               String?
+  city             String?
+  country          String?
+  complement       String?
+
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now())
+
+  roles           Role[]
+  recovery_tokens RecoveryTokens[]
+
+  notificationSubscriptions NotificationSubscriptions[]
+  titles                    Title[]
+
+  buyed_titles       BuyedTitles[]
+  selled_titles      SelledTitles[]
+  credit_history     CreditHistory[]
+  value_history      ValueHistory[]
+  withdraws          Withdraw[]
+  subscribed_numbers SubscribedNumber[]
+  fisical_titles     FisicalTitle[]
+
+  winned_editions Edition[]
+  draw_items      DrawItems[]
+  scratch_cards   ScratchCard[]
+  payments        Payment[]
+
+  @@map("users")
+}
+
+model Withdraw {
+  id String @id @unique @default(uuid())
+
+  user    User   @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  user_id String
+
+  value       Float
+  description String?
+  pix         String
+  status      Status  @default(PENDING)
+
+  payment_form String @default("PIX")
+
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now())
+
+  @@map("withdraws")
+}
+
+enum DepositType {
+  PIX
+  SALDO
+  CREDIT_CARD
+  CREDIT
+  BALANCE
+  DEBIT
+}
+
+enum HistoryType {
+  DEPOSIT
+  WITHDRAW
+  COMMISSION
+  OTHER
+}
+
+model CreditHistory {
+  id String @id @unique @default(uuid())
+
+  name        String?
+  description String?
+  value       Float
+
+  status       Status      @default(PENDING)
+  deposit_type DepositType @default(PIX)
+  type         HistoryType @default(OTHER)
+  date_format  String?
+
+  user    User   @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  user_id String
+
+  deleted    Boolean  @default(false)
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now())
+
+  @@map("credit_histories")
+}
+
+model ValueHistory {
+  id String @id @unique @default(uuid())
+
+  name        String?
+  description String?
+  value       Float
+  reference   String?
+
+  status       Status      @default(PENDING)
+  deposit_type String
+  type         HistoryType @default(OTHER)
+  date_format  String?
+
+  user    User   @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  user_id String
+
+  deleted    Boolean  @default(false)
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now())
+
+  @@map("value_histories")
+}
+
+model DrawItems {
+  id String @id @unique @default(uuid())
+
+  name  String
+  value Float?
+
+  image  String?
+  winner User?   @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  selected_dozens String[] @default([])
+
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now())
+
+  edition    Edition? @relation(fields: [edition_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  edition_id String?
+  user_id    String?
+
+  @@map("draw_items")
+}
+
+enum EditionStatus {
+  OPEN
+  CLOSED
+  FINISHED
+}
+
+model Edition {
+  id String @id @unique @default(uuid())
+
+  name      String        @unique
+  draw_date DateTime
+  order     Int           @default(autoincrement())
+  status    EditionStatus @default(OPEN)
+  winners   User[]
+
+  image_url String?
+  image_key String?
+
+  selected_dozens String[] @default([])
+
+  draw_items DrawItems[]
+
+  titles         Title[]
+  fisical_titles FisicalTitle[]
+
+  created_at  DateTime      @default(now())
+  updated_at  DateTime      @default(now())
+  BuyedTitles BuyedTitles[]
+  ScratchCard ScratchCard[]
+
+  @@map("editions")
+}
+
+model Title {
+  id String @id @unique @default(uuid())
+
+  name   String   @unique
+  dozens String[]
+
+  bar_code String?
+  qr_code  String?
+  chances  Int     @default(1)
+
+  value Float
+
+  user    User?   @relation(fields: [user_id], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  user_id String?
+
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now())
+
+  buyed_title    BuyedTitles? @relation(fields: [buyed_title_id], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  buyed_title_id String?
+
+  edition    Edition? @relation(fields: [edition_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  edition_id String?
+
+  deleted       Boolean       @default(false)
+  scratch_cards ScratchCard[]
+
+  @@map("titles")
+}
+
+model FisicalTitle {
+  id String @id @unique @default(uuid())
+
+  name   String   @unique
+  dozens String[]
+
+  bar_code String?
+  qr_code  String?
+  chances  Int     @default(1)
+
+  value Float
+
+  user    User?   @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  user_id String?
+
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now())
+
+  buyed_title    BuyedTitles? @relation(fields: [buyed_title_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  buyed_title_id String?
+
+  edition   Edition? @relation(fields: [editionId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  editionId String?
+
+  @@map("fisical_titles")
+}
+
+model RecoveryTokens {
+  id   String @id @unique @default(uuid())
+  code String
+
+  user    User   @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  user_id String
+
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now())
+
+  @@map("recovery_tokens")
+}
+
+enum RolesEnum {
+  ADMIN
+  DISTRIBUTOR
+  SELLER
+  BLOCKED
+  PREMIUM
+}
+
+model Role {
+  id          String    @id @unique @default(uuid())
+  name        RolesEnum
+  description String?
+
+  users User[]
+
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now())
+
+  @@map("roles")
+}
+
+model File {
+  id String @id @unique @default(uuid())
+
+  file_url String
+  file_key String
+
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now())
+
+  @@map("files")
+}
+
+model NotificationSubscriptions {
+  id String @id @unique @default(uuid())
+
+  endpoint       String
+  expirationTime String?
+  p256dh         String
+  auth           String
+
+  user    User?   @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  user_id String?
+
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now())
+
+  @@map("notifications_on_users")
+}
+
+enum Status {
+  DONE
+  PENDING
+  CANCEL
+}
+
+model BuyedTitles {
+  id String @id @unique @default(uuid())
+
+  name         String?
+  description  String
+  payment_form String
+  reference    String?
+  status       Status   @default(PENDING)
+  total        Float    @default(0)
+  edition      Edition? @relation(fields: [edition_id], references: [id], onDelete: SetNull, onUpdate: Cascade)
+
+  address_state String?
+  address_city  String?
+
+  user    User   @relation(fields: [user_id], references: [id], onDelete: SetDefault, onUpdate: Cascade)
+  user_id String
+
+  titles Title[]
+
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now())
+
+  selled_title   SelledTitles?
+  fisical_titles FisicalTitle[]
+  edition_id     String?
+  Payment        Payment[]
+
+  @@map("buyed_titles")
+}
+
+model SelledTitles {
+  id String @id @unique @default(uuid())
+
+  name         String?
+  description  String
+  payment_form String
+  reference    String?
+  status       Status  @default(PENDING)
+
+  seller    User   @relation(fields: [seller_id], references: [id], onDelete: SetDefault, onUpdate: Cascade)
+  seller_id String
+
+  buyed_titles    BuyedTitles @relation(fields: [buyed_titles_id], references: [id], onDelete: SetDefault, onUpdate: Cascade)
+  buyed_titles_id String      @unique
+
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now())
+
+  @@map("selled_titles")
+}
+
+model SubscribedNumber {
+  id String @id @unique @default(uuid())
+
+  cel String
+
+  user    User   @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  user_id String
+
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now())
+
+  @@map("subscribed_numbers")
+}
+
+model PaymentMethods {
+  id String @id @unique @default(uuid())
+
+  name        String
+  description String
+
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now())
+
+  @@map("payment_methods")
+}
+
+model BaseTitle {
+  id String @id @unique @default(uuid())
+
+  name   String   @unique
+  dozens String[]
+
+  bar_code String?
+  qr_code  String?
+  chances  Int     @default(1)
+
+  value Float
+
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now())
+
+  @@map("base_title")
+}
+
+enum SortFileType {
+  IMAGE
+  VIDEO
+  AUDIO
+  OTHER
+}
+
+model SortAsset {
+  id String @id @unique @default(uuid())
+
+  name     String
+  file_url String
+  file_key String
+  type     SortFileType
+
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now())
+
+  @@map("sort_assets")
+}
+
+model ScratchCard {
+  id String @id @unique @default(uuid())
+
+  name   String?
+  result String[] @default([])
+  winned Boolean?
+
+  user    User   @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  user_id String
+
+  edition    Edition? @relation(fields: [edition_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  edition_id String?
+
+  title    Title?  @relation(fields: [title_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  title_id String?
+
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now())
+
+  @@map("scratch_cards")
+}
+
+enum OptionsToPay {
+  TITLES
+  CREDIT
+  VALUE
+}
+
+model Payment {
+  id String @id @unique @default(uuid())
+
+  name        String?
+  description String?
+  value       Float
+  reference   String
+
+  status Status @default(PENDING)
+
+  user_document String
+  qr_code       String
+  pix_key       String?
+
+  user           User?        @relation(fields: [user_id], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  user_id        String?
+  buyed_title    BuyedTitles? @relation(fields: [buyed_title_id], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  buyed_title_id String?
+
+  option OptionsToPay @default(TITLES)
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@map("payments")
+}

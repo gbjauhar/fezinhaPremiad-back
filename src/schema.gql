@@ -1,0 +1,343 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type File {
+  """The id of the file"""
+  id: String!
+
+  """The url of the file"""
+  file_url: String!
+
+  """The key/name of the game"""
+  file_key: String!
+
+  """The creation date of the game"""
+  created_at: DateTime!
+
+  """The update date of the game"""
+  updated_at: DateTime!
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type Game {
+  """The id of the game"""
+  id: String!
+
+  """The name of the game"""
+  name: String!
+
+  """The file with file_url of the game"""
+  file: File
+
+  """The link showed in IFrame"""
+  link: String!
+  created_at: DateTime!
+  updated_at: DateTime!
+  file_id: String
+  blocked: Boolean
+  signals: [Signal!]
+}
+
+type Result {
+  greens: Int!
+  reds: Int!
+  percentage: Float!
+  game: Game!
+}
+
+type Signal {
+  """ID of sinal"""
+  id: String!
+
+  """Complement information 1 of sinal"""
+  enter_after: String
+
+  """Complement information 2 of sinal"""
+  leave_before: String
+
+  """The signal"""
+  signal: String
+
+  """The date of signal starter date"""
+  date: DateTime!
+
+  """The signal"""
+  status: SignalStatus
+
+  """The creation date of signal"""
+  created_at: DateTime!
+
+  """The updated date of signal"""
+  updated_at: DateTime!
+
+  """The game ID of signal"""
+  game_id: String!
+
+  """The game of the signal"""
+  game: Game!
+}
+
+enum SignalStatus {
+  WIN
+  LOSS
+  PENDING
+}
+
+type Plan {
+  id: String!
+  title: String!
+  description: [String!]!
+  price: Float!
+  plan: PlanType!
+  link: String
+  created_at: DateTime!
+  updated_at: DateTime!
+}
+
+enum PlanType {
+  GOLD
+  SILVER
+  BRONZE
+}
+
+type Role {
+  id: String!
+  name: RolesEnum!
+  description: String
+  created_at: DateTime!
+  updated_at: DateTime!
+}
+
+enum RolesEnum {
+  ADMIN
+  CREATOR
+  BLOCKED
+  PREMIUM
+}
+
+type User {
+  id: String!
+  name: String!
+  email: String!
+  cel: String!
+  doccument: String
+  password: String!
+  created_at: DateTime!
+  afiliado: String!
+  updated_at: DateTime!
+  roles: [Role!]
+  plan: Plan
+}
+
+type UserPage {
+  nextPage: Int!
+  nodes: [User!]!
+}
+
+type CustomResponse {
+  message: String!
+  status: Float!
+}
+
+type Video {
+  id: String!
+  title: String!
+  description: String
+  vimeo_id: String!
+  order: Float!
+  file_id: String
+  file: File
+  created_at: DateTime!
+  updated_at: DateTime!
+}
+
+type Tutorial {
+  id: String!
+  title: String!
+  description: String
+  vimeo_id: String!
+  order: Float!
+  file_id: String
+  created_at: DateTime!
+  link: String!
+  button_text: String!
+  updated_at: DateTime!
+}
+
+type Query {
+  """Get all signals, only admin can use this query"""
+  signals: [Signal!]!
+
+  """
+  Get all signals from one game, only users that have access to this game can use this query
+  """
+  gameSignals(game_id: String!): [Signal!]!
+
+  """
+  Get all dates from signals in one game, only users that have access to this game can use this query
+  """
+  signalsDateFromGame(game_id: String!): [DateTime!]!
+
+  """
+  Get all signals from one game, only users that have access to this game can use this query
+  """
+  lastGameSignal(game_id: String!): Game!
+
+  """
+  Get one signal, only users that have access to this game can use this query
+  """
+  signal(id: String!): Signal!
+  users(page: Float): UserPage!
+  user(id: String!): User!
+  usersByEmail(findUserByEmailInput: FindUserByEmailInput!): UserPage!
+  videos: [Video!]!
+  video(id: String!): Video!
+  tutorials: [Tutorial!]!
+  tutorial(id: String!): Tutorial!
+  plans: [Plan!]!
+  plan(id: String!): Plan!
+  games: [Game!]!
+  results: [Result!]!
+  game(id: String!): Game!
+}
+
+input FindUserByEmailInput {
+  email: String!
+  page: Int
+}
+
+type Mutation {
+  createSignal(createSignalInput: CreateSignalInput!): Signal!
+  updateSignal(updateSignalInput: UpdateSignalInput!): Signal!
+  removeSignal(id: String!): CustomResponse!
+  createVideo(createVideoInput: CreateVideoInput!): Video!
+  updateVideo(updateVideoInput: UpdateVideoInput!): Video!
+  removeVideo(id: String!): CustomResponse!
+  createTutorial(createTutorialInput: CreateTutorialInput!): Tutorial!
+  updateTutorial(updateTutorialInput: UpdateTutorialInput!): Tutorial!
+  removeTutorial(id: String!): CustomResponse!
+  createPlan(createPlanInput: CreatePlanInput!): Plan!
+  updatePlan(updatePlanInput: UpdatePlanInput!): Plan!
+  removePlan(id: String!): Plan!
+  createGame(createGameInput: CreateGameInput!): Game!
+  updateGame(updateGameInput: UpdateGameInput!): Game!
+  removeGame(id: Int!): CustomResponse!
+}
+
+input CreateSignalInput {
+  """Complement information 1 of sinal"""
+  enter_after: String
+
+  """Complement information 2 of sinal"""
+  leave_before: String
+
+  """The signal"""
+  signal: String!
+
+  """The date of signal starter date"""
+  date: DateTime!
+
+  """The signal"""
+  status: SignalStatus
+
+  """The game ID of signal"""
+  game_id: String!
+}
+
+input UpdateSignalInput {
+  """Complement information 1 of sinal"""
+  enter_after: String
+
+  """Complement information 2 of sinal"""
+  leave_before: String
+
+  """The signal"""
+  signal: String
+
+  """The date of signal starter date"""
+  date: DateTime
+
+  """The signal"""
+  status: SignalStatus
+
+  """The game ID of signal"""
+  game_id: String
+  id: String!
+}
+
+input CreateVideoInput {
+  title: String!
+  description: String
+  vimeo_id: String!
+}
+
+input UpdateVideoInput {
+  title: String
+  description: String
+  vimeo_id: String
+  id: String!
+  order: Int
+}
+
+input CreateTutorialInput {
+  title: String!
+  vimeo_id: String!
+  description: String
+  order: Int
+  link: String!
+  button_text: String!
+}
+
+input UpdateTutorialInput {
+  title: String
+  vimeo_id: String
+  description: String
+  order: Int
+  link: String
+  button_text: String
+  id: String!
+}
+
+input CreatePlanInput {
+  title: String!
+  description: [String!]!
+  price: Float!
+  plan: PlanType!
+  link: String!
+}
+
+input UpdatePlanInput {
+  title: String
+  description: [String!]
+  price: Float
+  plan: PlanType
+  link: String
+  id: String!
+}
+
+input CreateGameInput {
+  """Name of the game"""
+  name: String!
+
+  """The link showed in IFrame"""
+  link: String!
+}
+
+input UpdateGameInput {
+  """Name of the game"""
+  name: String
+
+  """The link showed in IFrame"""
+  link: String
+  id: String!
+}
+
+type Subscription {
+  signalAdded(id: String!): Signal!
+  signalEdited(id: String!): Signal!
+}

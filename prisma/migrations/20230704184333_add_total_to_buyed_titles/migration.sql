@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "buyed_titles" ADD COLUMN     "total" DOUBLE PRECISION NOT NULL DEFAULT 0;
